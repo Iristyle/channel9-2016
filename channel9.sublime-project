@@ -1,0 +1,30 @@
+{
+	"folders":
+	[
+		{
+		"path": "/Users/Iristyle/source/channel9",
+        "folder_exclude_patterns": [
+        ".pe_build",
+        ".vagrant",
+        "modules/acl/acceptance",
+        "modules/acl/spec",
+        "modules/acl/tests",
+        "modules/dsc/lib/puppet_x/dsc_resources",
+        "modules/acl/spec",
+        "modules/dsc/tests",
+        "modules/iis/spec",
+        "modules/powershell/spec",
+        "modules/powershell/tests",
+        "modules/reboot/acceptance",
+        "modules/reboot/spec",
+        "modules/reboot/tests",
+        "modules/registry/acceptance",
+        "modules/registry/spec",
+        "modules/registry/tests",
+        "modules/stdlib/spec",
+        "modules/stdlib/tests",
+        "modules/windowsfeature/spec"
+      ]
+		}
+	]
+}
