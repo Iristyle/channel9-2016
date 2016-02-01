@@ -1,0 +1,146 @@
+---
+# Keep the default Vagrant SSH key. It's publicly available and thus
+# "insecure", but these VMs aren't for production use and having a well-known
+# key allows for easy automation and documentation.
+ssh:
+  insert_key: false
+
+vms:
+  # BUG: this must be 'master' based on how pe_build configures agents puppet.conf on Windows
+  # enen though we would prefer to use the following:
+  # - name: pe-201531-master
+  - name: master
+    # this must be 'master' or else PE install may fail depending on network
+    hostname: master
+    # hostname: pe-201531-master
+    # box: centos-65-x64-virtualbox-nocm
+    box: puppetlabs/centos-6.6-64-nocm
+    roles:
+    # notes that roles are run in reverse order... because
+    - pe-puppet-master
+    - pe-memory-tuning2
+    - pe-forward-console
+    - el-stop-firewall
+    - el-fix-path
+    - base
+    - 2gb-memory
+  - name: win2012r2-agent
+    # hostname must not be a FQDN or the rename fails on Windows
+    hostname: win2012r2-agent
+    box: win2012r2-x64-virtualbox-nocm
+    box_download_checksum_type: md5
+    box_download_checksum: 63b8d3fdde5b7f5190dd937ea7897971
+    roles:
+    - pe-puppet-windows
+    - windows
+    - base
+    - 2gb-memory
+
+roles:
+  # our actual node specific stuff!
+  pe-puppet-master:
+    provisioners:
+      # pe_bootstrap enables pluginsync and auto certificate signing
+      - {type: pe_bootstrap, role: !ruby/sym master}
+      - {type: shell, inline: "echo 'nameserver 8.8.8.8' > /etc/resolv.conf" }
+      - {type: shell, path: './config/setup-master-demo.sh' }
+  pe-puppet-windows:
+    provisioners:
+      - {type: pe_bootstrap}
+      - {type: file, source: './facts/dsc_enabled.txt', destination: 'C:/ProgramData/PuppetLabs/facter/facts.d/dsc_enabled.txt'}
+      - {type: shell, path: './config/setup-agent-demo.ps1'}
+      - {type: shell, inline: 'shutdown -t 0 -r -f'}
+
+  # custom role definitions from puppet-debugging-kit
+  base:
+    private_networks:
+      - {auto_network: true}
+      # - {ip: '0.0.0.0', auto_network: true} # from stock oscar, but not PDBK
+    provisioners:
+      - {type: hosts,  add_localhost_hostnames: false, sync_hosts: true}
+  el-stop-firewall:
+    provisioners:
+      - type: shell
+        inline: |
+          RH_VERS=$(rpm -q --qf "%{VERSION}" $(rpm -q --whatprovides redhat-release))
+          if [ "$RH_VERS" -gt "6" ]; then
+            systemctl stop firewalld.service
+            systemctl disable firewalld.service
+          else
+           service iptables stop
+           chkconfig iptables off
+          fi
+  # Adds /usr/local/bin to the PATH
+  el-fix-path:
+    provisioners:
+      - type: shell
+        inline: |
+          echo "export PATH=$PATH:/usr/local/bin" > /etc/profile.d/path_fix.sh
+  1gb-memory:
+    providers:
+      - type: virtualbox
+        customize:
+          - [modifyvm, !ruby/sym id, '--memory', 1024]
+      - type: vmware_fusion
+        vmx:
+          memsize: 1024
+  2gb-memory:
+    providers:
+      - type: virtualbox
+        customize:
+          - [modifyvm, !ruby/sym id, '--memory', 2048]
+      - type: vmware_fusion
+        vmx:
+          memsize: 2048
+  4gb-memory:
+    providers:
+      - type: virtualbox
+        customize:
+          - [modifyvm, !ruby/sym id, '--memory', 4096]
+      - type: vmware_fusion
+        vmx:
+          memsize: 4096
+
+  # For PE 2015.2 and newer - taken from Sharpie's Puppet Debugging Kit
+  #
+  # I hate this, but if we consolidate it into 1 role, all PE 3.x boxes break
+  # because the installer freaks out if `/etc/puppetlabs` exists.
+  pe-memory-tuning2:
+    provisioners:
+      # Upload to /tmp and then use a shell script to copy into place. This
+      # method works with remote machines.
+      - type: file
+        source: './config/pe-memory-tuning.yaml'
+        destination: '/tmp/common.yaml'
+      - type: shell
+        inline: |-
+          mkdir -p /etc/puppetlabs/code/environments/production/hieradata
+          if [ -e /tmp/common.yaml ]; then
+            install -m 0644 /tmp/common.yaml /etc/puppetlabs/code/environments/production/hieradata
+          fi
+
+  pe-forward-console:
+    forwarded_ports:
+      - {guest: 443, host: 4443, auto_correct: true}
+  windows:
+    guest: windows
+    communicator: winrm
+    forwarded_ports:
+      - {guest: 8089, host: 8089, auto_correct: true}
+      # - {guest: 22,   host: 2222,  auto_correct: true, id: ssh}
+      - {guest: 3389, host: 3389, auto_correct: true, id: rdp}
+    providers:
+      - type: virtualbox
+        # must disable clipboard on 4.3.16 or else deal with major corruption!
+        # https://www.virtualbox.org/manual/ch08.html#vboxmanage-modifyvm-other
+        customize:
+          - [modifyvm, !ruby/sym id, '--clipboard', 'disabled']
+          # - [modifyvm, !ruby/sym id, '--natdnshostresolver1', 'on']
+          - [modifyvm, !ruby/sym id, '--audio', 'none']
+          - [modifyvm, !ruby/sym id, '--usb', 'off']
+    provisioners:
+      # necessary for boxes that don't have RDP enabled
+      - {type: shell, path: './config/enable-rdp.bat'}
+      - {type: shell, path: './config/install-certs.ps1'}
+      # currently production preview of WMF5
+      - {type: shell, path: './config/install-wmf5.bat'}

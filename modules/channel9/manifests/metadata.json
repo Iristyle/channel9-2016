@@ -1,0 +1,62 @@
+{
+  "name": "ethanbrown-channel9-dsc",
+  "version": "1.0.0",
+  "author": "ethanbrown",
+  "summary": "This module provides demo code for Channel 9",
+  "license": "MIT License",
+  "source": "",
+  "project_page": "",
+  "issues_url": "",
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "Windows",
+      "operatingsystemrelease": [
+        "Server 2003",
+        "Server 2003 R2",
+        "Server 2008",
+        "Server 2008 R2",
+        "Server 2012",
+        "Server 2012 R2",
+        "7",
+        "8"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "name": "pe",
+      "version_requirement": ">= 2015.3.0"
+    },
+    {
+      "name": "puppet",
+      "version_requirement": ">= 4.3.0"
+    }
+  ],
+  "description": "Channel9 Windows Demo",
+  "dependencies": [
+    {
+      "name": "puppetlabs/acl",
+      "version_requirement": ">= 1.1.2"
+    },
+    {
+      "name": "puppetlabs/dsc",
+      "version_requirement": ">= 1.0.0"
+    },
+    {
+      "name": "puppetlabs/reboot",
+      "version_requirement": ">= 1.2.1"
+    },
+    {
+      "name": "puppetlabs/powershell",
+      "version_requirement": ">= 1.0.6"
+    },
+    {
+      "name": "puppetlabs/registry",
+      "version_requirement": ">= 1.1.3"
+    },
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": ">= 4.11.0"
+    }
+  ]
+}
