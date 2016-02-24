@@ -13,6 +13,13 @@ class channel9::dsc_example {
     dsc_attributes      => ['Archive'],
   }
 
+  dsc_file { 'bogus_file':
+    dsc_ensure => 'present',
+    dsc_type            => 'File',
+    dsc_destinationpath => 'Q:/bad/path',
+    dsc_contents        => $test_file_contents,
+  }
+
   dsc_registry { 'registry_test':
     dsc_ensure    => 'Present',
     dsc_key       => 'HKEY_LOCAL_MACHINE\\SOFTWARE\\TestKey',
