@@ -126,7 +126,7 @@ roles:
     guest: windows
     communicator: winrm
     forwarded_ports:
-      - {guest: 8089, host: 8089, auto_correct: true}
+      - {guest: 80, host: 8089, auto_correct: true}
       # - {guest: 22,   host: 2222,  auto_correct: true, id: ssh}
       - {guest: 3389, host: 3389, auto_correct: true, id: rdp}
     providers:

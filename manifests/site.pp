@@ -14,13 +14,14 @@ node default {
 
 case downcase($::osfamily) {
   'windows': {
-      # include channel9::dsc_example
-      # include channel9::dsc_xwebsite_example
-  }
-}
+      # include windemo::dotnet_enable
+      # include windemo::sqlce
+      # include windemo::iis_enable
+      # include windemo::mvcapp
 
-# these are our custom facts
-if ($::dsc_enabled == 'true') {
-   notice('node has been identified as DSC enabled')
+      # alternative using DSC
+      # include windemo::dsc_example
+      # include windemo::dsc_xwebsite_example
+  }
 }
 
